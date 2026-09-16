@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>HIT HIM - Arcade Boxing</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- GAME WRAPPER -->
+  <div id="game-container">
+
+    <!-- INTRO / RULES SCREEN -->
+    <div id="screen-intro" class="screen active">
+      <div class="rules-wrapper">
+        <img src="assets/rules.png" alt="Hit Him Rules" class="rules-art" onerror="this.src='assest/rules.png'">
+        <!-- Interactive Start / Fight button aligned over rules banner -->
+        <button id="btn-start" class="arcade-btn start-btn" aria-label="Start Game">
+          <span>FIGHT!</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- GAME ARENA SCREEN -->
+    <div id="screen-game" class="screen">
+      <!-- Background Arena -->
+      <div class="arena-background"></div>
+
+      <!-- HUD TOP BAR -->
+      <header class="game-hud">
+        <div class="hud-box timer-box">
+          <span class="hud-label">TIME</span>
+          <span id="timer-display" class="hud-value">20</span>
+        </div>
+
+        <div class="hud-box zone-indicators" id="zone-indicators">
+          <div class="zone-badge" data-zone="head">
+            <span class="badge-name">HEAD</span>
+            <div class="sub-pips"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+            <span class="badge-count" id="badge-head">0/3</span>
+          </div>
+          <div class="zone-badge" data-zone="leftEye">
+            <span class="badge-name">L-EYE</span>
+            <div class="sub-pips"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+            <span class="badge-count" id="badge-leftEye">0/3</span>
+          </div>
+          <div class="zone-badge" data-zone="rightEye">
+            <span class="badge-name">R-EYE</span>
+            <div class="sub-pips"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+            <span class="badge-count" id="badge-rightEye">0/3</span>
+          </div>
+          <div class="zone-badge" data-zone="nose">
+            <span class="badge-name">NOSE</span>
+            <div class="sub-pips"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+            <span class="badge-count" id="badge-nose">0/3</span>
+          </div>
+          <div class="zone-badge" data-zone="mouthChin">
+            <span class="badge-name">CHIN</span>
+            <div class="sub-pips"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+            <span class="badge-count" id="badge-mouthChin">0/3</span>
+          </div>
+        </div>
+
+        <div class="hud-box hits-box">
+          <span class="hud-label">TOTAL HITS</span>
+          <span id="hits-display" class="hud-value">0<span class="hud-sub">/15</span></span>
+          <div class="progress-bar-wrap">
+            <div id="hits-progress" class="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ARENA PLAY AREA -->
+      <main class="arena-ring">
+        <!-- Continuous Moving Container (Never stops, continuous bobbing & weaving) -->
+        <div id="character-mover" class="character-mover">
+          <!-- Inner Character Stage -->
+          <div id="character-stage" class="character-stage">
+            <!-- Character image progression -->
+            <img id="character-img" src="assets/stage1.png" alt="Target Fighter" class="character-img" onerror="if(!this.dataset.fallback){this.dataset.fallback=1;this.src='assest/'+this.src.split('/').pop();}">
+            
+            <!-- Punch Impact Reaction FX Overlay -->
+            <div id="impact-flash" class="impact-flash"></div>
+            
+            <!-- 5 Interactive Face Hitboxes with Small Sub Points -->
+            <div id="hitboxes-layer" class="hitboxes-layer">
+              <div id="hitbox-head" class="face-hitbox" data-zone="head" title="Head">
+                <div class="sub-target-point"><span class="target-center-dot"></span></div>
+                <span class="debug-label">HEAD 0/3</span>
+              </div>
+              <div id="hitbox-leftEye" class="face-hitbox" data-zone="leftEye" title="Left Eye">
+                <div class="sub-target-point"><span class="target-center-dot"></span></div>
+                <span class="debug-label">LEFT EYE 0/3</span>
+              </div>
+              <div id="hitbox-rightEye" class="face-hitbox" data-zone="rightEye" title="Right Eye">
+                <div class="sub-target-point"><span class="target-center-dot"></span></div>
+                <span class="debug-label">RIGHT EYE 0/3</span>
+              </div>
+              <div id="hitbox-nose" class="face-hitbox" data-zone="nose" title="Nose">
+                <div class="sub-target-point"><span class="target-center-dot"></span></div>
+                <span class="debug-label">NOSE 0/3</span>
+              </div>
+              <div id="hitbox-mouthChin" class="face-hitbox" data-zone="mouthChin" title="Chin">
+                <div class="sub-target-point"><span class="target-center-dot"></span></div>
+                <span class="debug-label">CHIN 0/3</span>
+              </div>
+            </div>
+
+            <!-- Comic hit FX layer (POW, WHACK, BAM, sparks) -->
+            <div id="fx-layer" class="fx-layer"></div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Quick keyboard helper/debug notice -->
+      <aside class="subtle-hint">
+        Click the 5 facial target zones 3 times each! [Press <b>D</b> for Hitbox Guide]
+      </aside>
+    </div>
+
+    <!-- WIN SCREEN MODAL -->
+    <div id="screen-win" class="screen modal-screen">
+      <div class="result-card win-card">
+        <h1 class="result-title win-title">YOU WIN!</h1>
+        <div class="result-subtitle">HE'S FINISHED. KNOCKOUT!</div>
+
+        <div class="result-stats">
+          <div class="stat-row">
+            <span class="stat-label">HITS LANDED</span>
+            <span class="stat-val">15 / 15</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">TIME TAKEN</span>
+            <span id="win-time-display" class="stat-val highlight">0.00s</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">RANK</span>
+            <span id="win-rank-display" class="stat-val rank-val">CHAMPION</span>
+          </div>
+        </div>
+
+        <button id="btn-play-again" class="arcade-btn result-btn">
+          <span>PLAY AGAIN</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- LOSE SCREEN MODAL -->
+    <div id="screen-lose" class="screen modal-screen">
+      <div class="result-card lose-card">
+        <h1 class="result-title lose-title">TIME'S UP!</h1>
+        <div class="result-subtitle">YOU LOSE! HE SURVIVED.</div>
+
+        <div class="result-stats">
+          <div class="stat-row">
+            <span class="stat-label">HITS LANDED</span>
+            <span id="lose-hits-display" class="stat-val highlight">0 / 15</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">NEEDED</span>
+            <span class="stat-val">15 HITS</span>
+          </div>
+        </div>
+
+        <button id="btn-try-again" class="arcade-btn result-btn lose-btn">
+          <span>TRY AGAIN</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Creator Credit Badge at Bottom Left -->
+    <div class="credit-badge">madhav r</div>
+
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

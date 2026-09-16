@@ -1,0 +1,17 @@
+{
+  "name": "hit-him",
+  "version": "1.0.0",
+  "description": "HIT HIM - Fast-paced retro arcade punching browser game",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "game",
+    "arcade",
+    "boxing",
+    "html5"
+  ],
+  "author": "",
+  "license": "ISC"
+}
