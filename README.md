@@ -2,7 +2,7 @@
 
 > A fast-paced, retro arcade boxing browser game.
 
-[![Play in Browser](https://img.shields.io/badge/Play-HIT%20HIM-red?style=for-the-badge&logo=gamepad)](https://snehil069.github.io/hit-him/)
+[![Play in Browser](https://img.shields.io/badge/Play-HIT%20HIM-red?style=for-the-badge&logo=gamepad)](https://snehil069.github.io/Hit-Him/)
 
 ---
 
@@ -55,7 +55,7 @@ Enable GitHub Pages in your repository settings:
 1. Go to **Settings** > **Pages**.
 2. Under **Branch**, select `main` and `/ (root)`.
 3. Click **Save**.
-4. The game will be playable at: `https://snehil069.github.io/hit-him/`
+4. The game will be playable at: `https://snehil069.github.io/Hit-Him/`
 
 ---
 
