@@ -1,4 +1,19 @@
 {
   "cleanUrls": false,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/sound/(.*)",
+      "headers": [
+        {
+          "key": "Accept-Ranges",
+          "value": "bytes"
+        },
+        {
+          "key": "Content-Type",
+          "value": "audio/mpeg"
+        }
+      ]
+    }
+  ]
 }
