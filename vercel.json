@@ -1,6 +1,6 @@
 {
-  "cleanUrls": false,
-  "trailingSlash": false,
+  "buildCommand": "echo 'Building static game'",
+  "outputDirectory": ".",
   "headers": [
     {
       "source": "/sound/(.*)",
