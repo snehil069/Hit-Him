@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>HIT HIM - Arcade Boxing</title>
+  <style>
+/* ===================================================
+   HIT HIM - RETRO ARCADE BOXING GAME STYLESHEET
+   =================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Teko:wght@700&family=Bebas+Neue&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+:root {
+  --bg-dark: #0a0402;
+  --bg-brown: #1a0b06;
+  --primary-orange: #f35b04;
+  --primary-red: #c1121f;
+  --arcade-gold: #ffbe0b;
+  --text-cream: #fdf0d5;
+  --accent-glow: rgba(243, 91, 4, 0.4);
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--bg-dark);
+  font-family: 'Teko', 'Impact', 'Bebas Neue', sans-serif;
+  color: var(--text-cream);
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* Base Game Container */
+#game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #070302;
+  touch-action: manipulation;
+  overscroll-behavior: none;
+}
+
+/* Screens */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  overflow: hidden;
+}
+
+.screen.active {
+  display: flex;
+  opacity: 1;
+}
+
+/* ===================================================
+   1. INTRO / RULES SCREEN
+   =================================================== */
+#screen-intro {
+  background-color: #0d0604;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.rules-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.rules-art {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+
+/* Fight / Start Button aligned with the artwork banner */
+.start-btn {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%) skew(-6deg);
+  min-width: 280px;
+  padding: 14px 44px;
+  font-size: clamp(2.2rem, 4vw, 3.8rem);
+  letter-spacing: 4px;
+  font-family: 'Teko', 'Impact', sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  color: #fff;
+  background: linear-gradient(180deg, #ff4d00 0%, #b30000 100%);
+  border: 4px solid #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  text-shadow: 2px 2px 0px #000, 0 0 10px rgba(0,0,0,0.8);
+  box-shadow: 0 8px 0 #4a0000, 0 12px 25px rgba(255, 77, 0, 0.6);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.15s ease;
+  animation: pulse-start 1.4s ease-in-out infinite alternate;
+}
+
+.start-btn:hover {
+  filter: brightness(1.2);
+  transform: translateX(-50%) skew(-6deg) scale(1.05);
+}
+
+.start-btn:active {
+  transform: translateX(-50%) skew(-6deg) translateY(6px);
+  box-shadow: 0 2px 0 #4a0000, 0 4px 10px rgba(255, 77, 0, 0.4);
+}
+
+@keyframes pulse-start {
+  0% { transform: translateX(-50%) skew(-6deg) scale(0.98); box-shadow: 0 8px 0 #4a0000, 0 8px 20px rgba(243, 91, 4, 0.5); }
+  100% { transform: translateX(-50%) skew(-6deg) scale(1.04); box-shadow: 0 8px 0 #4a0000, 0 16px 35px rgba(255, 60, 0, 0.85); }
+}
+
+/* ===================================================
+   2. GAME ARENA SCREEN
+   =================================================== */
+#screen-game {
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  background: #0d0604;
+  cursor: crosshair;
+}
+
+.arena-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('assets/bg.png'), url('assest/bg.png'), url('https://raw.githubusercontent.com/snehil069/Hit-Him/main/assets/bg.png');
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  filter: brightness(0.9) contrast(1.1);
+  z-index: 1;
+}
+
+/* Top Arcade HUD */
+.game-hud {
+  position: relative;
+  z-index: 15;
+  width: 100%;
+  padding: 12px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(180deg, rgba(14, 7, 5, 0.95) 0%, rgba(14, 7, 5, 0.4) 80%, transparent 100%);
+  border-bottom: 2px solid rgba(243, 91, 4, 0.3);
+}
+
+.hud-box {
+  display: flex;
+  flex-direction: column;
+  text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.9);
+}
+
+.hud-label {
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--primary-orange);
+}
+
+.hud-value {
+  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+  font-weight: 700;
+  font-style: italic;
+  line-height: 0.95;
+  letter-spacing: 2px;
+  color: var(--text-cream);
+}
+
+.hud-sub {
+  font-size: 1.8rem;
+  color: #a89f91;
+  margin-left: 2px;
+}
+
+/* Timer Warning styles */
+.timer-box.warning .hud-value {
+  color: #ff3333;
+  animation: blink-warning 0.5s infinite alternate;
+}
+
+@keyframes blink-warning {
+  from { transform: scale(1); filter: drop-shadow(0 0 5px red); }
+  to { transform: scale(1.08); filter: drop-shadow(0 0 15px red); }
+}
+
+/* Zone Indicators (subtle badges) */
+.zone-indicators {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(243, 91, 4, 0.3);
+}
+
+.zone-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(30, 15, 10, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.zone-badge.completed {
+  background: rgba(220, 20, 20, 0.6);
+  border-color: #ff3333;
+  box-shadow: 0 0 8px rgba(255, 50, 50, 0.5);
+}
+
+.badge-name {
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  color: #ffaa5a;
+}
+
+/* Sub-pips (3 small hit dots per zone) */
+.sub-pips {
+  display: flex;
+  gap: 3px;
+  margin: 2px 0;
+}
+
+.sub-pips .pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3a1c12;
+  border: 1px solid #773311;
+  transition: all 0.15s ease;
+}
+
+.sub-pips .pip.active {
+  background: #ff7700;
+  border-color: #ffcc00;
+  box-shadow: 0 0 6px #ff7700;
+}
+
+.badge-count {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Progress bar under Hits */
+.progress-bar-wrap {
+  width: 140px;
+  height: 8px;
+  background: #2a150c;
+  border: 1px solid #ff7700;
+  margin-top: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff8800, #ff2200);
+  transition: width 0.15s ease-out;
+}
+
+/* Ring Arena Center */
+.arena-ring {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none; /* children enable pointer events */
+}
+
+/* Character Mover: Continuous uninterrupted dodging & weaving movement */
+.character-mover {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  transform-origin: center bottom;
+  will-change: transform;
+  /* Non-stop, continuous fluid dodging and bobbing */
+  animation: continuous-dodge-weave 2.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+/* Continuous, seamless loop: bobs up, dips down, weaves left and right */
+@keyframes continuous-dodge-weave {
+  0% {
+    transform: translateX(-120px) translateY(6px) rotate(-3.5deg);
+  }
+  20% {
+    transform: translateX(-50px) translateY(-16px) rotate(-1.5deg);
+  }
+  40% {
+    transform: translateX(30px) translateY(14px) rotate(1.8deg);
+  }
+  60% {
+    transform: translateX(120px) translateY(-12px) rotate(3.5deg);
+  }
+  80% {
+    transform: translateX(50px) translateY(16px) rotate(1.2deg);
+  }
+  100% {
+    transform: translateX(-120px) translateY(6px) rotate(-3.5deg);
+  }
+}
+
+/* Character Stage: Scales responsively within mover */
+.character-stage {
+  position: relative;
+  max-height: 85vh;
+  max-width: 90vw;
+  aspect-ratio: 1292 / 1217;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: auto;
+  transform-origin: center bottom;
+  transition: filter 0.05s ease;
+}
+
+/* Character Image */
+.character-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+  filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.9));
+  transform-origin: center center;
+  transition: transform 0.06s ease;
+}
+
+/* Micro punch impact reaction on character image - NEVER interrupts outer mover! */
+.character-stage.punched .character-img {
+  animation: punch-hit-jolt 0.12s ease-out;
+}
+
+@keyframes punch-hit-jolt {
+  0% {
+    filter: brightness(1.9) contrast(1.4);
+    transform: scale(0.95) translate(var(--punch-offset-x, 0px), 8px);
+  }
+  50% {
+    filter: brightness(1.3);
+    transform: scale(1.03) translate(calc(var(--punch-offset-x, 0px) * -0.5), -4px);
+  }
+  100% {
+    filter: none;
+    transform: scale(1);
+  }
+}
+
+/* Impact flash micro-overlay */
+.impact-flash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 25;
+  mix-blend-mode: overlay;
+  transition: opacity 0.08s ease;
+}
+
+.impact-flash.flash {
+  opacity: 0.8;
+}
+
+/* ===================================================
+   THE 5 FACE HITBOXES
+   Positioned precisely in % over the character face
+   =================================================== */
+.hitboxes-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.face-hitbox {
+  position: absolute;
+  cursor: crosshair;
+  background-color: transparent;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  transition: background-color 0.1s ease;
+  z-index: 30;
+}
+
+/* 1. HEAD (Forehead) */
+#hitbox-head {
+  left: 38%;
+  top: 8%;
+  width: 18%;
+  height: 11%;
+}
+
+/* 2. LEFT EYE (Viewer's left) */
+#hitbox-leftEye {
+  left: 41.5%;
+  top: 19.5%;
+  width: 10.5%;
+  height: 9%;
+}
+
+/* 3. RIGHT EYE (Viewer's right) */
+#hitbox-rightEye {
+  left: 53.5%;
+  top: 21.5%;
+  width: 9.5%;
+  height: 9%;
+}
+
+/* 4. NOSE */
+#hitbox-nose {
+  left: 47%;
+  top: 27.5%;
+  width: 9%;
+  height: 8.5%;
+}
+
+/* 5. MOUTH & CHIN */
+#hitbox-mouthChin {
+  left: 41%;
+  top: 36%;
+  width: 16%;
+  height: 16.5%;
+}
+
+/* When a zone is completed (3/3 hits), clicks are ignored */
+.face-hitbox.completed {
+  cursor: default;
+}
+
+/* Small Sub Target Points on Face */
+.sub-target-point {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(255, 170, 0, 0.75);
+  background: radial-gradient(circle, rgba(255, 120, 0, 0.3) 0%, transparent 70%);
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.15s ease;
+  animation: target-breathe 2.2s ease-in-out infinite alternate;
+}
+
+.target-center-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ffbe0b;
+  box-shadow: 0 0 6px #ff6600;
+}
+
+.face-hitbox:hover .sub-target-point {
+  width: 28px;
+  height: 28px;
+  border: 2px solid #ff3300;
+  background: radial-gradient(circle, rgba(255, 60, 0, 0.5) 0%, transparent 75%);
+  box-shadow: 0 0 14px rgba(255, 60, 0, 0.85);
+}
+
+.face-hitbox.completed .sub-target-point {
+  border-color: rgba(220, 20, 20, 0.6);
+  background: rgba(220, 20, 20, 0.25);
+  animation: none;
+}
+
+.face-hitbox.completed .target-center-dot {
+  background: #ff2222;
+  box-shadow: 0 0 4px #ff2222;
+}
+
+@keyframes target-breathe {
+  0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(1.18); opacity: 1; }
+}
+
+/* Debug labels inside hitboxes */
+.debug-label {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: #ffeb3b;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  font-family: sans-serif;
+  font-weight: bold;
+  white-space: nowrap;
+  border-radius: 2px;
+  pointer-events: none;
+  letter-spacing: 0.5px;
+}
+
+/* DEBUG MODE VISUALIZATION */
+body.debug-hitboxes .face-hitbox {
+  border: 2px dashed #00ff66;
+  background-color: rgba(0, 255, 100, 0.22);
+}
+
+body.debug-hitboxes .face-hitbox.completed {
+  border-color: #ff2222;
+  background-color: rgba(255, 34, 34, 0.25);
+}
+
+body.debug-hitboxes .debug-label {
+  display: block;
+}
+
+/* ===================================================
+   COMIC HIT FX & TEXT BURSTS
+   =================================================== */
+.fx-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 35;
+  overflow: visible;
+}
+
+.comic-burst {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(0.2);
+  font-family: 'Bungee', 'Impact', sans-serif;
+  font-size: clamp(2rem, 4.5vw, 3.5rem);
+  font-style: italic;
+  font-weight: 900;
+  color: #fffb00;
+  -webkit-text-stroke: 3px #000;
+  text-shadow: 4px 4px 0px #e63946, 0 0 20px #ff0000;
+  animation: comic-pop 0.38s ease-out forwards;
+  pointer-events: none;
+  white-space: nowrap;
+  letter-spacing: 2px;
+}
+
+.comic-burst.whack {
+  color: #ff477e;
+  -webkit-text-stroke: 3px #000;
+  text-shadow: 4px 4px 0px #ffe600;
+}
+
+.comic-burst.bam {
+  color: #ff9100;
+  -webkit-text-stroke: 3px #000;
+  text-shadow: 4px 4px 0px #b7094c;
+}
+
+.comic-burst.pow {
+  color: #00f5d4;
+  -webkit-text-stroke: 3px #000;
+  text-shadow: 4px 4px 0px #7b2cbf;
+}
+
+@keyframes comic-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(-15deg);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.3) rotate(8deg);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -70%) scale(0.8) rotate(12deg);
+  }
+}
+
+/* Punch Particle Spark */
+.spark {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffea00;
+  box-shadow: 0 0 10px #ff3700;
+  pointer-events: none;
+  animation: spark-fly 0.3s ease-out forwards;
+}
+
+@keyframes spark-fly {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* Subtle Hint Bottom */
+.subtle-hint {
+  position: relative;
+  z-index: 15;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  color: #b09c85;
+  background: rgba(10, 5, 3, 0.7);
+  padding: 6px 18px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.subtle-hint b {
+  color: #ff9100;
+}
+
+/* ===================================================
+   3. RESULT SCREENS (WIN / LOSE MODALS)
+   =================================================== */
+.modal-screen {
+  background-color: rgba(5, 2, 1, 0.88);
+  backdrop-filter: blur(4px);
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+}
+
+.result-card {
+  background: radial-gradient(circle, #2a1208 0%, #120603 100%);
+  border: 4px solid var(--primary-orange);
+  box-shadow: 0 0 50px rgba(243, 91, 4, 0.4), inset 0 0 30px rgba(0, 0, 0, 0.8);
+  padding: 40px 50px;
+  min-width: 380px;
+  max-width: 90vw;
+  text-align: center;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: modal-enter 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes modal-enter {
+  0% { transform: scale(0.7) translateY(40px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.win-card {
+  border-color: #ff9100;
+  box-shadow: 0 0 60px rgba(255, 145, 0, 0.6), inset 0 0 30px rgba(0, 0, 0, 0.8);
+}
+
+.lose-card {
+  border-color: #d90429;
+  box-shadow: 0 0 60px rgba(217, 4, 41, 0.6), inset 0 0 30px rgba(0, 0, 0, 0.8);
+}
+
+.result-title {
+  font-size: clamp(3.2rem, 6vw, 5.2rem);
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 4px;
+  line-height: 0.95;
+  text-shadow: 3px 3px 0 #000, 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.win-title {
+  color: #ffdd00;
+  text-shadow: 3px 3px 0 #000, 0 0 25px rgba(255, 221, 0, 0.7);
+}
+
+.lose-title {
+  color: #ff3333;
+  text-shadow: 3px 3px 0 #000, 0 0 25px rgba(255, 50, 50, 0.7);
+}
+
+.result-subtitle {
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+  color: #ffd8a8;
+  margin-top: 6px;
+  margin-bottom: 24px;
+  font-style: italic;
+}
+
+.result-stats {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 20px;
+  border-radius: 4px;
+  margin-bottom: 28px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  font-size: 1.1rem;
+  color: #bfa58a;
+  letter-spacing: 1px;
+}
+
+.stat-val {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.stat-val.highlight {
+  color: #ffc300;
+}
+
+.rank-val {
+  color: #00f5d4;
+  text-shadow: 0 0 8px rgba(0, 245, 212, 0.5);
+}
+
+/* Play Again & Try Again Buttons */
+.result-btn {
+  width: 100%;
+  padding: 14px 28px;
+  font-size: 2.2rem;
+  font-family: 'Teko', 'Impact', sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 3px;
+  color: #fff;
+  background: linear-gradient(180deg, #ff6600 0%, #b81400 100%);
+  border: 3px solid #ffcc00;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #520500, 0 10px 20px rgba(255, 102, 0, 0.4);
+  transition: all 0.1s ease;
+}
+
+.result-btn:hover {
+  filter: brightness(1.2);
+  transform: translateY(-2px);
+}
+
+.result-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #520500;
+}
+
+.lose-btn {
+  background: linear-gradient(180deg, #d90429 0%, #7209b7 100%);
+  border-color: #ff4d6d;
+  box-shadow: 0 6px 0 #3a011a, 0 10px 20px rgba(217, 4, 41, 0.4);
+}
+
+/* Creator Credit Badge at Bottom-Left */
+.credit-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 16px;
+  z-index: 100;
+  font-family: 'Teko', 'Impact', sans-serif;
+  font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #ffaa5a;
+  text-shadow: 2px 2px 2px #000, 0 0 10px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+/* ===================================================
+   RESPONSIVE & MOBILE PHONE OPTIMIZATION
+   =================================================== */
+@media (max-width: 768px) {
+  /* Dynamic Weave tuned for narrow phone screens (prevents edge-clipping) */
+  @keyframes continuous-dodge-weave {
+    0% {
+      transform: translateX(-45px) translateY(4px) rotate(-2deg);
+    }
+    20% {
+      transform: translateX(-18px) translateY(-10px) rotate(-1deg);
+    }
+    40% {
+      transform: translateX(14px) translateY(8px) rotate(1deg);
+    }
+    60% {
+      transform: translateX(45px) translateY(-8px) rotate(2deg);
+    }
+    80% {
+      transform: translateX(18px) translateY(10px) rotate(0.8deg);
+    }
+    100% {
+      transform: translateX(-45px) translateY(4px) rotate(-2deg);
+    }
+  }
+
+  /* Compact HUD for phones */
+  .game-hud {
+    padding: 6px 10px;
+    gap: 6px;
+    justify-content: space-between;
+  }
+
+  .hud-value {
+    font-size: 2.3rem;
+  }
+
+  .hud-label {
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+  }
+
+  .zone-indicators {
+    display: flex;
+    gap: 4px;
+    padding: 3px 6px;
+  }
+
+  .zone-badge {
+    padding: 2px 5px;
+  }
+
+  .badge-name {
+    font-size: 0.65rem;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-count {
+    font-size: 0.9rem;
+  }
+
+  .sub-pips {
+    gap: 2px;
+  }
+
+  .sub-pips .pip {
+    width: 4px;
+    height: 4px;
+  }
+
+  .progress-bar-wrap {
+    width: 75px;
+    height: 6px;
+  }
+
+  .character-stage {
+    max-height: 72vh;
+    max-width: 95vw;
+  }
+
+  /* Start button sizing on mobile */
+  .start-btn {
+    bottom: 6%;
+    min-width: 220px;
+    padding: 10px 28px;
+    font-size: 2.2rem;
+  }
+
+  /* Modal cards on mobile */
+  .result-card {
+    padding: 24px 18px;
+    min-width: 290px;
+    max-width: 92vw;
+  }
+
+  .result-title {
+    font-size: 3rem;
+  }
+
+  .result-subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+  }
+
+  .subtle-hint {
+    font-size: 0.8rem;
+    padding: 3px 10px;
+    margin-bottom: 4px;
+  }
+
+  .credit-badge {
+    bottom: 6px;
+    left: 8px;
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .zone-indicators {
+    gap: 2px;
+    padding: 2px 4px;
+  }
+  .zone-badge {
+    padding: 1px 3px;
+  }
+  .badge-name {
+    font-size: 0.58rem;
+  }
+  .badge-count {
+    font-size: 0.8rem;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <!-- GAME WRAPPER -->
+  <div id="game-container">
+
+    <!-- INTRO / RULES SCREEN -->
+    <div id="screen-intro" class="screen active">
+      <div class="rules-wrapper">
+        <img src="assets/rules.png" alt="Hit Him Rules" class="rules-art" onerror="if(!this.dataset.t1){this.dataset.t1=1;this.src='assest/rules.png';}else if(!this.dataset.t2){this.dataset.t2=1;this.src='https://raw.githubusercontent.com/snehil069/Hit-Him/main/assets/rules.png';}">
+        <!-- Interactive Start / Fight button aligned over rules banner -->
+        <button id="btn-start" class="arcade-btn start-btn" aria-label="Start Game">
+          <span>FIGHT!</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- GAME ARENA SCREEN -->
+    <div id="screen-game" class="screen">
+      <!-- Background Arena -->
+      <div class="arena-background"></div>
+
+      <!-- HUD TOP BAR -->
+      <header class="game-hud">
+        <div class="hud-box timer-box">
+          <span class="hud-label">TIME</span>
+          <span id="timer-display" class="hud-value">20</span>
+        </div>
+
+        <div class="hud-box zone-indicators" id="zone-indicators">
+          <div class="zone-badge" data-zone="head">
+            <span class="badge-name">HEAD</span>
+            <div class="sub-pips"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+            <span class="badge-count" id="badge-head">0/3</span>
+          </div>
+          <div class="zone-badge" data-zone="leftEye">
+            <span class="badge-name">L-EYE</span>
+            <div class="sub-pips"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+            <span class="badge-count" id="badge-leftEye">0/3</span>
+          </div>
+          <div class="zone-badge" data-zone="rightEye">
+            <span class="badge-name">R-EYE</span>
+            <div class="sub-pips"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+            <span class="badge-count" id="badge-rightEye">0/3</span>
+          </div>
+          <div class="zone-badge" data-zone="nose">
+            <span class="badge-name">NOSE</span>
+            <div class="sub-pips"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+            <span class="badge-count" id="badge-nose">0/3</span>
+          </div>
+          <div class="zone-badge" data-zone="mouthChin">
+            <span class="badge-name">CHIN</span>
+            <div class="sub-pips"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+            <span class="badge-count" id="badge-mouthChin">0/3</span>
+          </div>
+        </div>
+
+        <div class="hud-box hits-box">
+          <span class="hud-label">TOTAL HITS</span>
+          <span id="hits-display" class="hud-value">0<span class="hud-sub">/15</span></span>
+          <div class="progress-bar-wrap">
+            <div id="hits-progress" class="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ARENA PLAY AREA -->
+      <main class="arena-ring">
+        <!-- Continuous Moving Container (Never stops, continuous bobbing & weaving) -->
+        <div id="character-mover" class="character-mover">
+          <!-- Inner Character Stage -->
+          <div id="character-stage" class="character-stage">
+            <!-- Character image progression -->
+            <img id="character-img" src="assets/stage1.png" alt="Target Fighter" class="character-img" onerror="if(!this.dataset.f1){this.dataset.f1=1;this.src='assest/'+this.src.split('/').pop();}else if(!this.dataset.f2){this.dataset.f2=1;this.src='https://raw.githubusercontent.com/snehil069/Hit-Him/main/assets/'+this.src.split('/').pop();}">
+            
+            <!-- Punch Impact Reaction FX Overlay -->
+            <div id="impact-flash" class="impact-flash"></div>
+            
+            <!-- 5 Interactive Face Hitboxes with Small Sub Points -->
+            <div id="hitboxes-layer" class="hitboxes-layer">
+              <div id="hitbox-head" class="face-hitbox" data-zone="head" title="Head">
+                <div class="sub-target-point"><span class="target-center-dot"></span></div>
+                <span class="debug-label">HEAD 0/3</span>
+              </div>
+              <div id="hitbox-leftEye" class="face-hitbox" data-zone="leftEye" title="Left Eye">
+                <div class="sub-target-point"><span class="target-center-dot"></span></div>
+                <span class="debug-label">LEFT EYE 0/3</span>
+              </div>
+              <div id="hitbox-rightEye" class="face-hitbox" data-zone="rightEye" title="Right Eye">
+                <div class="sub-target-point"><span class="target-center-dot"></span></div>
+                <span class="debug-label">RIGHT EYE 0/3</span>
+              </div>
+              <div id="hitbox-nose" class="face-hitbox" data-zone="nose" title="Nose">
+                <div class="sub-target-point"><span class="target-center-dot"></span></div>
+                <span class="debug-label">NOSE 0/3</span>
+              </div>
+              <div id="hitbox-mouthChin" class="face-hitbox" data-zone="mouthChin" title="Chin">
+                <div class="sub-target-point"><span class="target-center-dot"></span></div>
+                <span class="debug-label">CHIN 0/3</span>
+              </div>
+            </div>
+
+            <!-- Comic hit FX layer (POW, WHACK, BAM, sparks) -->
+            <div id="fx-layer" class="fx-layer"></div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Quick keyboard helper/debug notice -->
+      <aside class="subtle-hint">
+        Click the 5 facial target zones 3 times each! [Press <b>D</b> for Hitbox Guide]
+      </aside>
+    </div>
+
+    <!-- WIN SCREEN MODAL -->
+    <div id="screen-win" class="screen modal-screen">
+      <div class="result-card win-card">
+        <h1 class="result-title win-title">YOU WIN!</h1>
+        <div class="result-subtitle">HE'S FINISHED. KNOCKOUT!</div>
+
+        <div class="result-stats">
+          <div class="stat-row">
+            <span class="stat-label">HITS LANDED</span>
+            <span class="stat-val">15 / 15</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">TIME TAKEN</span>
+            <span id="win-time-display" class="stat-val highlight">0.00s</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">RANK</span>
+            <span id="win-rank-display" class="stat-val rank-val">CHAMPION</span>
+          </div>
+        </div>
+
+        <button id="btn-play-again" class="arcade-btn result-btn">
+          <span>PLAY AGAIN</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- LOSE SCREEN MODAL -->
+    <div id="screen-lose" class="screen modal-screen">
+      <div class="result-card lose-card">
+        <h1 class="result-title lose-title">TIME'S UP!</h1>
+        <div class="result-subtitle">YOU LOSE! HE SURVIVED.</div>
+
+        <div class="result-stats">
+          <div class="stat-row">
+            <span class="stat-label">HITS LANDED</span>
+            <span id="lose-hits-display" class="stat-val highlight">0 / 15</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">NEEDED</span>
+            <span class="stat-val">15 HITS</span>
+          </div>
+        </div>
+
+        <button id="btn-try-again" class="arcade-btn result-btn lose-btn">
+          <span>TRY AGAIN</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Creator Credit Badge at Bottom Left -->
+    <div class="credit-badge">madhav r</div>
+
+  </div>
+
+  <script>
+/**
+ * ===================================================
+ * HIT HIM - RETRO ARCADE BOXING GAME ENGINE
+ * ===================================================
+ */
+
+(function () {
+  'use strict';
+
+  // --- CONFIGURATION & CONSTANTS ---
+  const DEBUG_HITBOXES = false;
+  const GAME_DURATION = 20; // 20 seconds as requested
+  const HITS_PER_ZONE = 3;
+  const TOTAL_ZONES = 5;
+  const TARGET_TOTAL_HITS = TOTAL_ZONES * HITS_PER_ZONE; // 15 hits
+
+  // Asset paths (supporting both assets/ and assest/)
+  const ASSET_ROOT = 'assets/';
+  const STAGE_IMAGES = {
+    stage1: 'stage1.png',
+    stage2: 'stage2.png',
+    stage3: 'stage3.png',
+    stage4: 'stage4.png',
+    stage5: 'stage5.png'
+  };
+
+  const SOUND_PATHS = {
+    hit: 'sound/4290-moan.mp3',
+    win: 'sound/8694-moan-earrape.mp3',
+    lose: 'sound/gawkgawkgawkgawk.mp3'
+  };
+  const GITHUB_FALLBACK_SOUNDS = {
+    hit: 'https://raw.githubusercontent.com/snehil069/Hit-Him/main/sound/4290-moan.mp3',
+    win: 'https://raw.githubusercontent.com/snehil069/Hit-Him/main/sound/8694-moan-earrape.mp3',
+    lose: 'https://raw.githubusercontent.com/snehil069/Hit-Him/main/sound/gawkgawkgawkgawk.mp3'
+  };
+
+  // Comic hit popup words
+  const COMIC_WORDS = ['WHACK!', 'POW!', 'BAM!', 'CRACK!', 'SMACK!'];
+
+  // --- GAME STATE ---
+  const state = {
+    currentScreen: 'INTRO', // 'INTRO' | 'GAME' | 'WIN' | 'LOSE'
+    totalHits: 0,
+    zones: {
+      head: { name: 'HEAD', hits: 0, max: HITS_PER_ZONE, completed: false },
+      leftEye: { name: 'LEFT EYE', hits: 0, max: HITS_PER_ZONE, completed: false },
+      rightEye: { name: 'RIGHT EYE', hits: 0, max: HITS_PER_ZONE, completed: false },
+      nose: { name: 'NOSE', hits: 0, max: HITS_PER_ZONE, completed: false },
+      mouthChin: { name: 'MOUTH & CHIN', hits: 0, max: HITS_PER_ZONE, completed: false }
+    },
+    timerRemaining: GAME_DURATION,
+    timerInterval: null,
+    gameStartTime: 0,
+    gameEndTime: 0,
+    isDebug: DEBUG_HITBOXES
+  };
+
+  // --- DOM REFERENCES ---
+  const dom = {
+    container: document.getElementById('game-container'),
+    screenIntro: document.getElementById('screen-intro'),
+    screenGame: document.getElementById('screen-game'),
+    screenWin: document.getElementById('screen-win'),
+    screenLose: document.getElementById('screen-lose'),
+    btnStart: document.getElementById('btn-start'),
+    btnPlayAgain: document.getElementById('btn-play-again'),
+    btnTryAgain: document.getElementById('btn-try-again'),
+    timerDisplay: document.getElementById('timer-display'),
+    timerBox: document.querySelector('.timer-box'),
+    hitsDisplay: document.getElementById('hits-display'),
+    hitsProgress: document.getElementById('hits-progress'),
+    characterMover: document.getElementById('character-mover'),
+    characterStage: document.getElementById('character-stage'),
+    characterImg: document.getElementById('character-img'),
+    impactFlash: document.getElementById('impact-flash'),
+    fxLayer: document.getElementById('fx-layer'),
+    hitboxesLayer: document.getElementById('hitboxes-layer'),
+    hitboxes: {
+      head: document.getElementById('hitbox-head'),
+      leftEye: document.getElementById('hitbox-leftEye'),
+      rightEye: document.getElementById('hitbox-rightEye'),
+      nose: document.getElementById('hitbox-nose'),
+      mouthChin: document.getElementById('hitbox-mouthChin')
+    },
+    badges: {
+      head: document.getElementById('badge-head'),
+      leftEye: document.getElementById('badge-leftEye'),
+      rightEye: document.getElementById('badge-rightEye'),
+      nose: document.getElementById('badge-nose'),
+      mouthChin: document.getElementById('badge-mouthChin')
+    },
+    winTimeDisplay: document.getElementById('win-time-display'),
+    winRankDisplay: document.getElementById('win-rank-display'),
+    loseHitsDisplay: document.getElementById('lose-hits-display')
+  };
+
+  // --- AUDIO SYSTEM (ROBUST & ZERO-LATENCY POOL) ---
+  class SoundManager {
+    constructor() {
+      this.poolSize = 8;
+      this.hitAudioPool = [];
+      this.poolIndex = 0;
+      this.audioContext = null;
+      this.winAudio = null;
+      this.loseAudio = null;
+      this.init();
+    }
+
+    init() {
+      // Create audio pool for rapid hit sounds
+      for (let i = 0; i < this.poolSize; i++) {
+        const audio = new Audio(SOUND_PATHS.hit);
+        audio.addEventListener('error', () => { audio.src = GITHUB_FALLBACK_SOUNDS.hit; }, { once: true });
+        audio.preload = 'auto';
+        this.hitAudioPool.push(audio);
+      }
+
+      this.winAudio = new Audio(SOUND_PATHS.win);
+      this.winAudio.addEventListener('error', () => { this.winAudio.src = GITHUB_FALLBACK_SOUNDS.win; }, { once: true });
+      this.winAudio.preload = 'auto';
+
+      this.loseAudio = new Audio(SOUND_PATHS.lose);
+      this.loseAudio.preload = 'auto';
+      // Handle fallback path for lose audio
+      this.loseAudio.addEventListener('error', () => {
+        this.loseAudio.src = GITHUB_FALLBACK_SOUNDS.lose;
+      }, { once: true });
+    }
+
+    unlock() {
+      try {
+        if (!this.audioContext) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) {
+            this.audioContext = new AudioContextClass();
+          }
+        }
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+          this.audioContext.resume().catch(() => {});
+        }
+      } catch (e) {
+        // Safe fallback
+      }
+    }
+
+    playHit() {
+      try {
+        const audio = this.hitAudioPool[this.poolIndex];
+        this.poolIndex = (this.poolIndex + 1) % this.poolSize;
+        audio.currentTime = 0;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            // If local file playback is blocked, synthesize punch thud
+            this.synthHitSound();
+          });
+        }
+      } catch (e) {
+        this.synthHitSound();
+      }
+    }
+
+    playWin() {
+      try {
+        if (this.winAudio) {
+          this.winAudio.currentTime = 0;
+          this.winAudio.play().catch(() => this.synthWinFanfare());
+        } else {
+          this.synthWinFanfare();
+        }
+      } catch (e) {
+        this.synthWinFanfare();
+      }
+    }
+
+    playLose() {
+      try {
+        if (this.loseAudio) {
+          this.loseAudio.currentTime = 0;
+          this.loseAudio.play().catch(() => this.synthLoseSound());
+        } else {
+          this.synthLoseSound();
+        }
+      } catch (e) {
+        this.synthLoseSound();
+      }
+    }
+
+    stopAll() {
+      this.hitAudioPool.forEach(a => {
+        try { a.pause(); a.currentTime = 0; } catch (e) {}
+      });
+      if (this.winAudio) {
+        try { this.winAudio.pause(); this.winAudio.currentTime = 0; } catch (e) {}
+      }
+      if (this.loseAudio) {
+        try { this.loseAudio.pause(); this.loseAudio.currentTime = 0; } catch (e) {}
+      }
+    }
+
+    // Web Audio Fallbacks (ensures game NEVER is silent even if files fail)
+    synthHitSound() {
+      if (!this.audioContext) return;
+      try {
+        const ctx = this.audioContext;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(140, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.5, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.13);
+      } catch (e) {}
+    }
+
+    synthWinFanfare() {
+      if (!this.audioContext) return;
+      try {
+        const ctx = this.audioContext;
+        [261.6, 329.6, 392.0, 523.2].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.4);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + i * 0.1);
+          osc.stop(ctx.currentTime + i * 0.1 + 0.45);
+        });
+      } catch (e) {}
+    }
+
+    synthLoseSound() {
+      if (!this.audioContext) return;
+      try {
+        const ctx = this.audioContext;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(80, ctx.currentTime + 0.6);
+        gain.gain.setValueAtTime(0.4, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.65);
+      } catch (e) {}
+    }
+  }
+
+  const sound = new SoundManager();
+
+  // --- INITIALIZATION ---
+  function initGame() {
+    setupEventListeners();
+    updateDebugMode();
+    showScreen('INTRO');
+  }
+
+  // --- SCREEN SWITCHING ---
+  function showScreen(screenName) {
+    state.currentScreen = screenName;
+    dom.screenIntro.classList.remove('active');
+    dom.screenGame.classList.remove('active');
+    dom.screenWin.classList.remove('active');
+    dom.screenLose.classList.remove('active');
+
+    if (screenName === 'INTRO') {
+      dom.screenIntro.classList.add('active');
+    } else if (screenName === 'GAME') {
+      dom.screenGame.classList.add('active');
+    } else if (screenName === 'WIN') {
+      dom.screenGame.classList.add('active'); // Keep game in background of modal
+      dom.screenWin.classList.add('active');
+    } else if (screenName === 'LOSE') {
+      dom.screenGame.classList.add('active');
+      dom.screenLose.classList.add('active');
+    }
+  }
+
+  // --- GAME START & RESET ---
+  function startGame() {
+    sound.unlock();
+    sound.stopAll();
+
+    // Reset state values
+    state.totalHits = 0;
+    state.timerRemaining = GAME_DURATION;
+    state.gameStartTime = performance.now();
+    state.gameEndTime = 0;
+
+    for (const key in state.zones) {
+      state.zones[key].hits = 0;
+      state.zones[key].completed = false;
+    }
+
+    // Reset UI
+    updateScoreUI();
+    updateCharacterStage();
+    updateTimerUI();
+    enableHitboxes(true);
+
+    dom.timerBox.classList.remove('warning');
+    dom.fxLayer.innerHTML = '';
+    if (dom.characterMover) {
+      dom.characterMover.style.animationPlayState = 'running';
+    }
+
+    showScreen('GAME');
+    startTimer();
+  }
+
+  function resetGame() {
+    stopTimer();
+    sound.stopAll();
+    startGame();
+  }
+
+  // --- TIMER ENGINE ---
+  function startTimer() {
+    stopTimer();
+    state.timerInterval = setInterval(() => {
+      state.timerRemaining--;
+      updateTimerUI();
+
+      if (state.timerRemaining <= 0) {
+        state.timerRemaining = 0;
+        stopTimer();
+        handleTimeUp();
+      }
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (state.timerInterval) {
+      clearInterval(state.timerInterval);
+      state.timerInterval = null;
+    }
+  }
+
+  function updateTimerUI() {
+    dom.timerDisplay.textContent = state.timerRemaining;
+    if (state.timerRemaining <= 5) {
+      dom.timerBox.classList.add('warning');
+    } else {
+      dom.timerBox.classList.remove('warning');
+    }
+  }
+
+  function handleTimeUp() {
+    if (state.totalHits >= TARGET_TOTAL_HITS) {
+      handleWin();
+    } else {
+      handleLose();
+    }
+  }
+
+  // --- HIT DETECTION & LOGIC ---
+  function handleFaceHit(zoneKey, event) {
+    if (state.currentScreen !== 'GAME') return;
+    if (state.timerRemaining <= 0) return;
+
+    const zone = state.zones[zoneKey];
+    if (!zone || zone.completed) return;
+
+    // Increment hits
+    zone.hits++;
+    state.totalHits++;
+
+    if (zone.hits >= zone.max) {
+      zone.hits = zone.max;
+      zone.completed = true;
+    }
+
+    // Audio feedback
+    sound.playHit();
+
+    // Visual feedback
+    triggerPunchAnimation(zoneKey, event);
+    updateScoreUI();
+    updateCharacterStage();
+
+    // Check Win Condition
+    if (state.totalHits >= TARGET_TOTAL_HITS) {
+      handleWin();
+    }
+  }
+
+  // --- VISUAL IMPACT & COMIC EFFECTS ---
+  function triggerPunchAnimation(zoneKey, event) {
+    // 1. Recoil character
+    const stage = dom.characterStage;
+    stage.classList.remove('punched');
+    void stage.offsetWidth; // Trigger reflow
+
+    // Calculate subtle directional bounce from hit position
+    const randOffset = (Math.random() - 0.5) * 20;
+    const randRot = (Math.random() - 0.5) * 6;
+    stage.style.setProperty('--punch-offset-x', `${randOffset}px`);
+    stage.style.setProperty('--punch-rot', `${randRot}deg`);
+    stage.classList.add('punched');
+
+    // 2. Micro screen flash
+    dom.impactFlash.classList.add('flash');
+    setTimeout(() => {
+      dom.impactFlash.classList.remove('flash');
+    }, 60);
+
+    // 3. Comic burst text ("POW!", "WHACK!", "BAM!")
+    createComicEffect(zoneKey, event);
+  }
+
+  function createComicEffect(zoneKey, event) {
+    const stageRect = dom.characterStage.getBoundingClientRect();
+    let clickX = stageRect.width / 2;
+    let clickY = stageRect.height / 2;
+
+    if (event && event.clientX) {
+      clickX = event.clientX - stageRect.left;
+      clickY = event.clientY - stageRect.top;
+    } else {
+      // Fallback to hitbox center
+      const hitboxEl = dom.hitboxes[zoneKey];
+      if (hitboxEl) {
+        clickX = hitboxEl.offsetLeft + hitboxEl.offsetWidth / 2;
+        clickY = hitboxEl.offsetTop + hitboxEl.offsetHeight / 2;
+      }
+    }
+
+    // Spawn comic word
+    const comicEl = document.createElement('div');
+    const randomWord = COMIC_WORDS[Math.floor(Math.random() * COMIC_WORDS.length)];
+    comicEl.className = `comic-burst ${randomWord.slice(0, -1).toLowerCase()}`;
+    comicEl.textContent = randomWord;
+    comicEl.style.left = `${clickX}px`;
+    comicEl.style.top = `${clickY}px`;
+
+    dom.fxLayer.appendChild(comicEl);
+
+    // Spawn 5 sparks
+    for (let i = 0; i < 5; i++) {
+      const spark = document.createElement('div');
+      spark.className = 'spark';
+      spark.style.left = `${clickX}px`;
+      spark.style.top = `${clickY}px`;
+      const angle = (Math.PI * 2 / 5) * i + (Math.random() * 0.5);
+      const distance = 30 + Math.random() * 40;
+      spark.style.setProperty('--tx', `${Math.cos(angle) * distance}px`);
+      spark.style.setProperty('--ty', `${Math.sin(angle) * distance}px`);
+      dom.fxLayer.appendChild(spark);
+      setTimeout(() => spark.remove(), 320);
+    }
+
+    setTimeout(() => {
+      comicEl.remove();
+    }, 400);
+  }
+
+  // --- SCORE & HUD UPDATE ---
+  function updateScoreUI() {
+    dom.hitsDisplay.innerHTML = `${state.totalHits}<span class="hud-sub">/15</span>`;
+    const progressPercent = Math.min(100, (state.totalHits / TARGET_TOTAL_HITS) * 100);
+    dom.hitsProgress.style.width = `${progressPercent}%`;
+
+    // Update zone badges and hitboxes
+    for (const key in state.zones) {
+      const zone = state.zones[key];
+      const badgeCount = dom.badges[key];
+      const hitbox = dom.hitboxes[key];
+      const badgeWrap = badgeCount ? badgeCount.closest('.zone-badge') : null;
+
+      if (badgeCount) {
+        badgeCount.textContent = `${zone.hits}/${zone.max}`;
+      }
+
+      if (zone.completed) {
+        if (badgeWrap) badgeWrap.classList.add('completed');
+        if (hitbox) hitbox.classList.add('completed');
+      } else {
+        if (badgeWrap) badgeWrap.classList.remove('completed');
+        if (hitbox) hitbox.classList.remove('completed');
+      }
+
+      // Update sub-pips
+      if (badgeWrap && badgeWrap.querySelectorAll) {
+        const pips = badgeWrap.querySelectorAll('.pip');
+        if (pips && pips.forEach) {
+          pips.forEach((pip, idx) => {
+            if (idx < zone.hits) {
+              pip.classList.add('active');
+            } else {
+              pip.classList.remove('active');
+            }
+          });
+        }
+      }
+
+      // Update debug label
+      if (hitbox) {
+        const debugLabel = hitbox.querySelector('.debug-label');
+        if (debugLabel) {
+          debugLabel.textContent = `${zone.name} ${zone.hits}/${zone.max}`;
+        }
+      }
+    }
+  }
+
+  // --- CHARACTER DAMAGE STAGE PROGRESSION ---
+  function updateCharacterStage() {
+    let stageFile = STAGE_IMAGES.stage1;
+
+    // Damage progression mapping:
+    // 0-2 hits: stage1
+    // 3-5 hits: stage2
+    // 6-8 hits: stage3
+    // 9-11 hits: stage4
+    // 12-15 hits: stage5
+    if (state.totalHits >= 12) {
+      stageFile = STAGE_IMAGES.stage5;
+    } else if (state.totalHits >= 9) {
+      stageFile = STAGE_IMAGES.stage4;
+    } else if (state.totalHits >= 6) {
+      stageFile = STAGE_IMAGES.stage3;
+    } else if (state.totalHits >= 3) {
+      stageFile = STAGE_IMAGES.stage2;
+    } else {
+      stageFile = STAGE_IMAGES.stage1;
+    }
+
+    const newSrc = ASSET_ROOT + stageFile;
+    if (dom.characterImg.getAttribute('src') !== newSrc) {
+      dom.characterImg.src = newSrc;
+    }
+  }
+
+  function enableHitboxes(enabled) {
+    for (const key in dom.hitboxes) {
+      dom.hitboxes[key].style.pointerEvents = enabled ? 'auto' : 'none';
+    }
+  }
+
+  // --- WIN CONDITION ---
+  function handleWin() {
+    stopTimer();
+    enableHitboxes(false);
+    state.gameEndTime = performance.now();
+
+    if (dom.characterMover) {
+      dom.characterMover.style.animationPlayState = 'paused';
+    }
+
+    // Force stage5
+    dom.characterImg.src = ASSET_ROOT + STAGE_IMAGES.stage5;
+
+    // Play Victory Sound
+    sound.playWin();
+
+    // Calculate elapsed time in seconds with 2 decimal places
+    const elapsedSeconds = ((state.gameEndTime - state.gameStartTime) / 1000).toFixed(2);
+    dom.winTimeDisplay.textContent = `${elapsedSeconds}s`;
+
+    // Rating
+    let rank = 'GOOD FIGHTER';
+    if (parseFloat(elapsedSeconds) < 10) {
+      rank = 'GODLIKE / PERFECT';
+    } else if (parseFloat(elapsedSeconds) < 18) {
+      rank = 'LIGHTNING FAST';
+    } else if (parseFloat(elapsedSeconds) < 25) {
+      rank = 'PRO BOXER';
+    }
+    dom.winRankDisplay.textContent = rank;
+
+    // Show WIN modal after tiny pause for final hit reaction
+    setTimeout(() => {
+      showScreen('WIN');
+    }, 300);
+  }
+
+  // --- LOSE CONDITION ---
+  function handleLose() {
+    stopTimer();
+    enableHitboxes(false);
+
+    if (dom.characterMover) {
+      dom.characterMover.style.animationPlayState = 'paused';
+    }
+
+    // Play Defeat Sound
+    sound.playLose();
+
+    dom.loseHitsDisplay.textContent = `${state.totalHits} / 15`;
+
+    setTimeout(() => {
+      showScreen('LOSE');
+    }, 200);
+  }
+
+  // --- DEBUG MODE TOGGLE ---
+  function updateDebugMode() {
+    if (state.isDebug) {
+      document.body.classList.add('debug-hitboxes');
+    } else {
+      document.body.classList.remove('debug-hitboxes');
+    }
+  }
+
+  // --- EVENT LISTENERS ---
+  function setupEventListeners() {
+    let lastTouchTimestamp = 0;
+
+    // Fast mobile tap helper
+    function attachFastTap(element, handler) {
+      if (!element) return;
+      element.addEventListener('touchstart', (e) => {
+        lastTouchTimestamp = performance.now();
+        e.stopPropagation();
+        e.preventDefault();
+        sound.unlock();
+        handler(e);
+      }, { passive: false });
+
+      element.addEventListener('click', (e) => {
+        if (performance.now() - lastTouchTimestamp < 450) return; // Prevent ghost click
+        e.stopPropagation();
+        sound.unlock();
+        handler(e);
+      });
+    }
+
+    // Start button on Intro screen
+    attachFastTap(dom.btnStart, () => startGame());
+
+    // Play again / Try again buttons
+    attachFastTap(dom.btnPlayAgain, () => resetGame());
+    attachFastTap(dom.btnTryAgain, () => resetGame());
+
+    // 5 Face Hitbox Handlers
+    for (const key in dom.hitboxes) {
+      const el = dom.hitboxes[key];
+      if (el) {
+        el.addEventListener('touchstart', (e) => {
+          lastTouchTimestamp = performance.now();
+          e.stopPropagation();
+          e.preventDefault();
+          const touch = e.touches[0];
+          handleFaceHit(key, touch);
+        }, { passive: false });
+
+        el.addEventListener('click', (e) => {
+          if (performance.now() - lastTouchTimestamp < 450) return;
+          e.stopPropagation();
+          handleFaceHit(key, e);
+        });
+      }
+    }
+
+    // First touch anywhere unlocks audio on mobile
+    window.addEventListener('touchstart', () => sound.unlock(), { once: true, passive: true });
+    window.addEventListener('pointerdown', () => sound.unlock(), { once: true, passive: true });
+
+    // Keyboard controls:
+    // 'D' toggles debug hitboxes
+    // 'R' restarts game
+    // 'Space' / 'Enter' starts or replays
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'd' || e.key === 'D') {
+        state.isDebug = !state.isDebug;
+        updateDebugMode();
+      } else if (e.key === 'r' || e.key === 'R') {
+        if (state.currentScreen === 'GAME' || state.currentScreen === 'WIN' || state.currentScreen === 'LOSE') {
+          resetGame();
+        }
+      } else if (e.key === ' ' || e.key === 'Enter') {
+        if (state.currentScreen === 'INTRO') {
+          startGame();
+        } else if (state.currentScreen === 'WIN' || state.currentScreen === 'LOSE') {
+          resetGame();
+        }
+      }
+    });
+
+    // Prevent image drag
+    dom.characterImg.addEventListener('dragstart', (e) => e.preventDefault());
+  }
+
+  // Initialize on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGame);
+  } else {
+    initGame();
+  }
+
+})();
+
+  </script>
+</body>
+</html>

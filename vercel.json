@@ -1,6 +1,5 @@
 {
-  "buildCommand": "echo 'Building static game'",
-  "outputDirectory": ".",
+  "outputDirectory": "public",
   "headers": [
     {
       "source": "/sound/(.*)",
