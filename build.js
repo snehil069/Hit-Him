@@ -19,12 +19,12 @@ if (!js.includes('GITHUB_SOUND_FALLBACK')) {
     /const SOUND_PATHS = \{[^}]+\};/s,
     `const SOUND_PATHS = {
     hit: 'sound/4290-moan.mp3',
-    win: 'sound/8694-moan-earrape.mp3',
+    win: 'sound/yamate-kudesai.mp3',
     lose: 'sound/gawkgawkgawkgawk.mp3'
   };
   const GITHUB_FALLBACK_SOUNDS = {
     hit: '${githubBase}sound/4290-moan.mp3',
-    win: '${githubBase}sound/8694-moan-earrape.mp3',
+    win: '${githubBase}sound/yamate-kudesai.mp3',
     lose: '${githubBase}sound/gawkgawkgawkgawk.mp3'
   };`
   );
@@ -85,6 +85,7 @@ ${css}
         <div class="hud-box timer-box">
           <span class="hud-label">TIME</span>
           <span id="timer-display" class="hud-value">20</span>
+          <span id="difficulty-badge" class="difficulty-tag"></span>
         </div>
 
         <div class="hud-box zone-indicators" id="zone-indicators">

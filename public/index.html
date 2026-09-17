@@ -322,8 +322,8 @@ html, body {
   pointer-events: none;
   transform-origin: center bottom;
   will-change: transform;
-  /* Non-stop, continuous fluid dodging and bobbing */
-  animation: continuous-dodge-weave 2.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  /* Non-stop, continuous fluid dodging and bobbing with dynamic duration */
+  animation: continuous-dodge-weave var(--dodge-duration, 2.8s) cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 }
 
 /* Continuous, seamless loop: bobs up, dips down, weaves left and right */
@@ -382,11 +382,11 @@ html, body {
 @keyframes punch-hit-jolt {
   0% {
     filter: brightness(1.9) contrast(1.4);
-    transform: scale(0.95) translate(var(--punch-offset-x, 0px), 8px);
+    transform: scale(0.94) translate(var(--punch-offset-x, 0px), 8px) rotate(var(--punch-rot, 0deg));
   }
   50% {
     filter: brightness(1.3);
-    transform: scale(1.03) translate(calc(var(--punch-offset-x, 0px) * -0.5), -4px);
+    transform: scale(1.03) translate(calc(var(--punch-offset-x, 0px) * -0.5), -4px) rotate(calc(var(--punch-rot, 0deg) * -0.5));
   }
   100% {
     filter: none;
@@ -838,29 +838,68 @@ body.debug-hitboxes .debug-label {
   opacity: 0.9;
 }
 
+/* Difficulty Tag in Arcade HUD */
+.difficulty-tag {
+  display: none;
+  font-family: 'Teko', 'Impact', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  line-height: 1;
+  padding: 2px 7px;
+  border-radius: 3px;
+  margin-top: 3px;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 2px #000;
+}
+
+.difficulty-tag.active {
+  display: inline-block;
+  animation: pulse-difficulty-tag 0.8s ease-in-out infinite alternate;
+}
+
+.difficulty-tag.fast-tag {
+  background: linear-gradient(135deg, #ff8800, #d90429);
+  color: #fff;
+  border: 1px solid #ffcc00;
+  box-shadow: 0 0 10px rgba(255, 136, 0, 0.7);
+}
+
+.difficulty-tag.turbo-tag {
+  background: linear-gradient(135deg, #ff0055, #7209b7);
+  color: #fff;
+  border: 1px solid #ff80bf;
+  box-shadow: 0 0 12px rgba(255, 0, 85, 0.85);
+}
+
+@keyframes pulse-difficulty-tag {
+  from { transform: scale(0.96); filter: brightness(1); }
+  to { transform: scale(1.06); filter: brightness(1.25); }
+}
+
 /* ===================================================
    RESPONSIVE & MOBILE PHONE OPTIMIZATION
    =================================================== */
 @media (max-width: 768px) {
-  /* Dynamic Weave tuned for narrow phone screens (prevents edge-clipping) */
+  /* Fast Agile Weave tuned for narrow/split screen (active wide dodging) */
   @keyframes continuous-dodge-weave {
     0% {
-      transform: translateX(-45px) translateY(4px) rotate(-2deg);
+      transform: translateX(-70px) translateY(8px) rotate(-3.5deg);
     }
     20% {
-      transform: translateX(-18px) translateY(-10px) rotate(-1deg);
+      transform: translateX(-30px) translateY(-16px) rotate(-1.5deg);
     }
     40% {
-      transform: translateX(14px) translateY(8px) rotate(1deg);
+      transform: translateX(25px) translateY(14px) rotate(2deg);
     }
     60% {
-      transform: translateX(45px) translateY(-8px) rotate(2deg);
+      transform: translateX(70px) translateY(-14px) rotate(3.5deg);
     }
     80% {
-      transform: translateX(18px) translateY(10px) rotate(0.8deg);
+      transform: translateX(30px) translateY(16px) rotate(1.5deg);
     }
     100% {
-      transform: translateX(-45px) translateY(4px) rotate(-2deg);
+      transform: translateX(-70px) translateY(8px) rotate(-3.5deg);
     }
   }
 
@@ -953,6 +992,31 @@ body.debug-hitboxes .debug-label {
     left: 8px;
     font-size: 1.1rem;
   }
+@media (max-width: 500px) {
+  /* High-velocity erratic dodging for mobile phones & ultra-narrow split-screen */
+  @keyframes continuous-dodge-weave {
+    0% {
+      transform: translateX(-60px) translateY(10px) rotate(-4.5deg);
+    }
+    25% {
+      transform: translateX(25px) translateY(-20px) rotate(2.5deg);
+    }
+    50% {
+      transform: translateX(60px) translateY(10px) rotate(4.5deg);
+    }
+    75% {
+      transform: translateX(-25px) translateY(-18px) rotate(-2.5deg);
+    }
+    100% {
+      transform: translateX(-60px) translateY(10px) rotate(-4.5deg);
+    }
+  }
+
+  .difficulty-tag {
+    font-size: 0.8rem;
+    padding: 1px 5px;
+    letter-spacing: 1px;
+  }
 }
 
 @media (max-width: 420px) {
@@ -998,6 +1062,7 @@ body.debug-hitboxes .debug-label {
         <div class="hud-box timer-box">
           <span class="hud-label">TIME</span>
           <span id="timer-display" class="hud-value">20</span>
+          <span id="difficulty-badge" class="difficulty-tag"></span>
         </div>
 
         <div class="hud-box zone-indicators" id="zone-indicators">
@@ -1169,12 +1234,12 @@ body.debug-hitboxes .debug-label {
 
   const SOUND_PATHS = {
     hit: 'sound/4290-moan.mp3',
-    win: 'sound/8694-moan-earrape.mp3',
+    win: 'sound/yamate-kudesai.mp3',
     lose: 'sound/gawkgawkgawkgawk.mp3'
   };
   const GITHUB_FALLBACK_SOUNDS = {
     hit: 'https://raw.githubusercontent.com/snehil069/Hit-Him/main/sound/4290-moan.mp3',
-    win: 'https://raw.githubusercontent.com/snehil069/Hit-Him/main/sound/8694-moan-earrape.mp3',
+    win: 'https://raw.githubusercontent.com/snehil069/Hit-Him/main/sound/yamate-kudesai.mp3',
     lose: 'https://raw.githubusercontent.com/snehil069/Hit-Him/main/sound/gawkgawkgawkgawk.mp3'
   };
 
@@ -1196,7 +1261,13 @@ body.debug-hitboxes .debug-label {
     timerInterval: null,
     gameStartTime: 0,
     gameEndTime: 0,
-    isDebug: DEBUG_HITBOXES
+    isDebug: DEBUG_HITBOXES,
+    difficulty: {
+      mode: 'NORMAL',
+      duration: GAME_DURATION,
+      moveDuration: '2.8s',
+      isNarrow: false
+    }
   };
 
   // --- DOM REFERENCES ---
@@ -1211,6 +1282,7 @@ body.debug-hitboxes .debug-label {
     btnTryAgain: document.getElementById('btn-try-again'),
     timerDisplay: document.getElementById('timer-display'),
     timerBox: document.querySelector('.timer-box'),
+    diffBadge: document.getElementById('difficulty-badge'),
     hitsDisplay: document.getElementById('hits-display'),
     hitsProgress: document.getElementById('hits-progress'),
     characterMover: document.getElementById('character-mover'),
@@ -1401,10 +1473,65 @@ body.debug-hitboxes .debug-label {
 
   const sound = new SoundManager();
 
+  // --- DIFFICULTY TUNER (MOBILE / SPLIT-SCREEN ADAPTIVE DIFFICULTY) ---
+  function getDifficultyConfig() {
+    const width = (dom.container && dom.container.clientWidth) ? dom.container.clientWidth : window.innerWidth;
+    if (width <= 500) {
+      return {
+        mode: 'TURBO',
+        duration: 11,
+        moveDuration: '1.2s',
+        isNarrow: true
+      };
+    } else if (width <= 768) {
+      return {
+        mode: 'FAST',
+        duration: 13,
+        moveDuration: '1.5s',
+        isNarrow: true
+      };
+    } else {
+      return {
+        mode: 'NORMAL',
+        duration: GAME_DURATION,
+        moveDuration: '2.8s',
+        isNarrow: false
+      };
+    }
+  }
+
+  function applyDifficulty(isGameActive = false) {
+    const config = getDifficultyConfig();
+    state.difficulty = config;
+
+    if (!isGameActive) {
+      state.timerRemaining = config.duration;
+    }
+
+    if (dom.characterMover) {
+      dom.characterMover.style.setProperty('--dodge-duration', config.moveDuration);
+      dom.characterMover.style.animationDuration = config.moveDuration;
+    }
+
+    const badge = dom.diffBadge || document.getElementById('difficulty-badge');
+    if (badge) {
+      if (config.isNarrow) {
+        badge.textContent = `⚡ ${config.mode}`;
+        badge.className = `difficulty-tag ${config.mode.toLowerCase()}-tag active`;
+      } else {
+        badge.textContent = '';
+        badge.className = 'difficulty-tag';
+      }
+    }
+
+    updateTimerUI();
+  }
+
   // --- INITIALIZATION ---
   function initGame() {
     setupEventListeners();
     updateDebugMode();
+    applyDifficulty(false);
     showScreen('INTRO');
   }
 
@@ -1434,15 +1561,37 @@ body.debug-hitboxes .debug-label {
     sound.unlock();
     sound.stopAll();
 
+    // Re-evaluate difficulty based on current viewport / split-screen width
+    const diffConfig = getDifficultyConfig();
+    state.difficulty = diffConfig;
+
     // Reset state values
     state.totalHits = 0;
-    state.timerRemaining = GAME_DURATION;
+    state.timerRemaining = diffConfig.duration;
     state.gameStartTime = performance.now();
     state.gameEndTime = 0;
 
     for (const key in state.zones) {
       state.zones[key].hits = 0;
       state.zones[key].completed = false;
+    }
+
+    // Apply animation speed to mover
+    if (dom.characterMover) {
+      dom.characterMover.style.setProperty('--dodge-duration', diffConfig.moveDuration);
+      dom.characterMover.style.animationDuration = diffConfig.moveDuration;
+      dom.characterMover.style.animationPlayState = 'running';
+    }
+
+    const badge = dom.diffBadge || document.getElementById('difficulty-badge');
+    if (badge) {
+      if (diffConfig.isNarrow) {
+        badge.textContent = `⚡ ${diffConfig.mode}`;
+        badge.className = `difficulty-tag ${diffConfig.mode.toLowerCase()}-tag active`;
+      } else {
+        badge.textContent = '';
+        badge.className = 'difficulty-tag';
+      }
     }
 
     // Reset UI
@@ -1453,9 +1602,6 @@ body.debug-hitboxes .debug-label {
 
     dom.timerBox.classList.remove('warning');
     dom.fxLayer.innerHTML = '';
-    if (dom.characterMover) {
-      dom.characterMover.style.animationPlayState = 'running';
-    }
 
     showScreen('GAME');
     startTimer();
@@ -1491,7 +1637,8 @@ body.debug-hitboxes .debug-label {
 
   function updateTimerUI() {
     dom.timerDisplay.textContent = state.timerRemaining;
-    if (state.timerRemaining <= 5) {
+    const warnThreshold = (state.difficulty && state.difficulty.isNarrow) ? 4 : 5;
+    if (state.timerRemaining <= warnThreshold) {
       dom.timerBox.classList.add('warning');
     } else {
       dom.timerBox.classList.remove('warning');
@@ -1544,9 +1691,13 @@ body.debug-hitboxes .debug-label {
     stage.classList.remove('punched');
     void stage.offsetWidth; // Trigger reflow
 
-    // Calculate subtle directional bounce from hit position
-    const randOffset = (Math.random() - 0.5) * 20;
-    const randRot = (Math.random() - 0.5) * 6;
+    // Calculate directional bounce & flinch from hit position
+    // If narrow/split-screen, add dynamic evasive slip to challenge tap spamming
+    const isNarrow = state.difficulty && state.difficulty.isNarrow;
+    const offsetMagnitude = isNarrow ? 34 : 20;
+    const rotMagnitude = isNarrow ? 9 : 6;
+    const randOffset = (Math.random() - 0.5) * offsetMagnitude;
+    const randRot = (Math.random() - 0.5) * rotMagnitude;
     stage.style.setProperty('--punch-offset-x', `${randOffset}px`);
     stage.style.setProperty('--punch-rot', `${randRot}deg`);
     stage.classList.add('punched');
@@ -1710,14 +1861,25 @@ body.debug-hitboxes .debug-label {
     const elapsedSeconds = ((state.gameEndTime - state.gameStartTime) / 1000).toFixed(2);
     dom.winTimeDisplay.textContent = `${elapsedSeconds}s`;
 
-    // Rating
+    // Rating adapted to difficulty mode
     let rank = 'GOOD FIGHTER';
-    if (parseFloat(elapsedSeconds) < 10) {
-      rank = 'GODLIKE / PERFECT';
-    } else if (parseFloat(elapsedSeconds) < 18) {
-      rank = 'LIGHTNING FAST';
-    } else if (parseFloat(elapsedSeconds) < 25) {
-      rank = 'PRO BOXER';
+    const elapsed = parseFloat(elapsedSeconds);
+    if (state.difficulty && state.difficulty.isNarrow) {
+      if (elapsed < 6) {
+        rank = '⚡ TURBO GODLIKE';
+      } else if (elapsed < 8.5) {
+        rank = '⚡ LIGHTNING REFLEX';
+      } else if (elapsed < 11) {
+        rank = '⚡ TURBO CHAMPION';
+      }
+    } else {
+      if (elapsed < 10) {
+        rank = 'GODLIKE / PERFECT';
+      } else if (elapsed < 18) {
+        rank = 'LIGHTNING FAST';
+      } else if (elapsed < 25) {
+        rank = 'PRO BOXER';
+      }
     }
     dom.winRankDisplay.textContent = rank;
 
@@ -1832,6 +1994,11 @@ body.debug-hitboxes .debug-label {
 
     // Prevent image drag
     dom.characterImg.addEventListener('dragstart', (e) => e.preventDefault());
+
+    // Dynamically adjust difficulty on viewport resize / split-screen change
+    window.addEventListener('resize', () => {
+      applyDifficulty(state.currentScreen === 'GAME');
+    });
   }
 
   // Initialize on DOM ready

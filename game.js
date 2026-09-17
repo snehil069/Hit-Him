@@ -26,7 +26,7 @@
 
   const SOUND_PATHS = {
     hit: 'sound/4290-moan.mp3',
-    win: 'sound/8694-moan-earrape.mp3',
+    win: 'sound/yamate-kudesai.mp3',
     lose: 'sound/gawkgawkgawkgawk.mp3' // with fallback to sound/gawk-gawk.mp3
   };
 
@@ -48,7 +48,13 @@
     timerInterval: null,
     gameStartTime: 0,
     gameEndTime: 0,
-    isDebug: DEBUG_HITBOXES
+    isDebug: DEBUG_HITBOXES,
+    difficulty: {
+      mode: 'NORMAL',
+      duration: GAME_DURATION,
+      moveDuration: '2.8s',
+      isNarrow: false
+    }
   };
 
   // --- DOM REFERENCES ---
@@ -63,6 +69,7 @@
     btnTryAgain: document.getElementById('btn-try-again'),
     timerDisplay: document.getElementById('timer-display'),
     timerBox: document.querySelector('.timer-box'),
+    diffBadge: document.getElementById('difficulty-badge'),
     hitsDisplay: document.getElementById('hits-display'),
     hitsProgress: document.getElementById('hits-progress'),
     characterMover: document.getElementById('character-mover'),
@@ -251,10 +258,65 @@
 
   const sound = new SoundManager();
 
+  // --- DIFFICULTY TUNER (MOBILE / SPLIT-SCREEN ADAPTIVE DIFFICULTY) ---
+  function getDifficultyConfig() {
+    const width = (dom.container && dom.container.clientWidth) ? dom.container.clientWidth : window.innerWidth;
+    if (width <= 500) {
+      return {
+        mode: 'TURBO',
+        duration: 11,
+        moveDuration: '1.2s',
+        isNarrow: true
+      };
+    } else if (width <= 768) {
+      return {
+        mode: 'FAST',
+        duration: 13,
+        moveDuration: '1.5s',
+        isNarrow: true
+      };
+    } else {
+      return {
+        mode: 'NORMAL',
+        duration: GAME_DURATION,
+        moveDuration: '2.8s',
+        isNarrow: false
+      };
+    }
+  }
+
+  function applyDifficulty(isGameActive = false) {
+    const config = getDifficultyConfig();
+    state.difficulty = config;
+
+    if (!isGameActive) {
+      state.timerRemaining = config.duration;
+    }
+
+    if (dom.characterMover) {
+      dom.characterMover.style.setProperty('--dodge-duration', config.moveDuration);
+      dom.characterMover.style.animationDuration = config.moveDuration;
+    }
+
+    const badge = dom.diffBadge || document.getElementById('difficulty-badge');
+    if (badge) {
+      if (config.isNarrow) {
+        badge.textContent = `⚡ ${config.mode}`;
+        badge.className = `difficulty-tag ${config.mode.toLowerCase()}-tag active`;
+      } else {
+        badge.textContent = '';
+        badge.className = 'difficulty-tag';
+      }
+    }
+
+    updateTimerUI();
+  }
+
   // --- INITIALIZATION ---
   function initGame() {
     setupEventListeners();
     updateDebugMode();
+    applyDifficulty(false);
     showScreen('INTRO');
   }
 
@@ -284,15 +346,37 @@
     sound.unlock();
     sound.stopAll();
 
+    // Re-evaluate difficulty based on current viewport / split-screen width
+    const diffConfig = getDifficultyConfig();
+    state.difficulty = diffConfig;
+
     // Reset state values
     state.totalHits = 0;
-    state.timerRemaining = GAME_DURATION;
+    state.timerRemaining = diffConfig.duration;
     state.gameStartTime = performance.now();
     state.gameEndTime = 0;
 
     for (const key in state.zones) {
       state.zones[key].hits = 0;
       state.zones[key].completed = false;
+    }
+
+    // Apply animation speed to mover
+    if (dom.characterMover) {
+      dom.characterMover.style.setProperty('--dodge-duration', diffConfig.moveDuration);
+      dom.characterMover.style.animationDuration = diffConfig.moveDuration;
+      dom.characterMover.style.animationPlayState = 'running';
+    }
+
+    const badge = dom.diffBadge || document.getElementById('difficulty-badge');
+    if (badge) {
+      if (diffConfig.isNarrow) {
+        badge.textContent = `⚡ ${diffConfig.mode}`;
+        badge.className = `difficulty-tag ${diffConfig.mode.toLowerCase()}-tag active`;
+      } else {
+        badge.textContent = '';
+        badge.className = 'difficulty-tag';
+      }
     }
 
     // Reset UI
@@ -303,9 +387,6 @@
 
     dom.timerBox.classList.remove('warning');
     dom.fxLayer.innerHTML = '';
-    if (dom.characterMover) {
-      dom.characterMover.style.animationPlayState = 'running';
-    }
 
     showScreen('GAME');
     startTimer();
@@ -341,7 +422,8 @@
 
   function updateTimerUI() {
     dom.timerDisplay.textContent = state.timerRemaining;
-    if (state.timerRemaining <= 5) {
+    const warnThreshold = (state.difficulty && state.difficulty.isNarrow) ? 4 : 5;
+    if (state.timerRemaining <= warnThreshold) {
       dom.timerBox.classList.add('warning');
     } else {
       dom.timerBox.classList.remove('warning');
@@ -394,9 +476,13 @@
     stage.classList.remove('punched');
     void stage.offsetWidth; // Trigger reflow
 
-    // Calculate subtle directional bounce from hit position
-    const randOffset = (Math.random() - 0.5) * 20;
-    const randRot = (Math.random() - 0.5) * 6;
+    // Calculate directional bounce & flinch from hit position
+    // If narrow/split-screen, add dynamic evasive slip to challenge tap spamming
+    const isNarrow = state.difficulty && state.difficulty.isNarrow;
+    const offsetMagnitude = isNarrow ? 34 : 20;
+    const rotMagnitude = isNarrow ? 9 : 6;
+    const randOffset = (Math.random() - 0.5) * offsetMagnitude;
+    const randRot = (Math.random() - 0.5) * rotMagnitude;
     stage.style.setProperty('--punch-offset-x', `${randOffset}px`);
     stage.style.setProperty('--punch-rot', `${randRot}deg`);
     stage.classList.add('punched');
@@ -560,14 +646,25 @@
     const elapsedSeconds = ((state.gameEndTime - state.gameStartTime) / 1000).toFixed(2);
     dom.winTimeDisplay.textContent = `${elapsedSeconds}s`;
 
-    // Rating
+    // Rating adapted to difficulty mode
     let rank = 'GOOD FIGHTER';
-    if (parseFloat(elapsedSeconds) < 10) {
-      rank = 'GODLIKE / PERFECT';
-    } else if (parseFloat(elapsedSeconds) < 18) {
-      rank = 'LIGHTNING FAST';
-    } else if (parseFloat(elapsedSeconds) < 25) {
-      rank = 'PRO BOXER';
+    const elapsed = parseFloat(elapsedSeconds);
+    if (state.difficulty && state.difficulty.isNarrow) {
+      if (elapsed < 6) {
+        rank = '⚡ TURBO GODLIKE';
+      } else if (elapsed < 8.5) {
+        rank = '⚡ LIGHTNING REFLEX';
+      } else if (elapsed < 11) {
+        rank = '⚡ TURBO CHAMPION';
+      }
+    } else {
+      if (elapsed < 10) {
+        rank = 'GODLIKE / PERFECT';
+      } else if (elapsed < 18) {
+        rank = 'LIGHTNING FAST';
+      } else if (elapsed < 25) {
+        rank = 'PRO BOXER';
+      }
     }
     dom.winRankDisplay.textContent = rank;
 
@@ -682,6 +779,11 @@
 
     // Prevent image drag
     dom.characterImg.addEventListener('dragstart', (e) => e.preventDefault());
+
+    // Dynamically adjust difficulty on viewport resize / split-screen change
+    window.addEventListener('resize', () => {
+      applyDifficulty(state.currentScreen === 'GAME');
+    });
   }
 
   // Initialize on DOM ready
