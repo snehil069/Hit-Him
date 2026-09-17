@@ -48,11 +48,13 @@
     timerInterval: null,
     gameStartTime: 0,
     gameEndTime: 0,
+    lastPunchTime: 0,
     isDebug: DEBUG_HITBOXES,
     difficulty: {
       mode: 'NORMAL',
       duration: GAME_DURATION,
       moveDuration: '2.8s',
+      punchCooldown: 90,
       isNarrow: false
     }
   };
@@ -263,16 +265,18 @@
     const width = (dom.container && dom.container.clientWidth) ? dom.container.clientWidth : window.innerWidth;
     if (width <= 500) {
       return {
-        mode: 'TURBO',
-        duration: 11,
-        moveDuration: '1.2s',
+        mode: 'ULTRA TURBO',
+        duration: 8,
+        moveDuration: '0.85s',
+        punchCooldown: 140,
         isNarrow: true
       };
     } else if (width <= 768) {
       return {
-        mode: 'FAST',
-        duration: 13,
-        moveDuration: '1.5s',
+        mode: 'TURBO',
+        duration: 10,
+        moveDuration: '1.1s',
+        punchCooldown: 120,
         isNarrow: true
       };
     } else {
@@ -280,6 +284,7 @@
         mode: 'NORMAL',
         duration: GAME_DURATION,
         moveDuration: '2.8s',
+        punchCooldown: 90,
         isNarrow: false
       };
     }
@@ -301,8 +306,9 @@
     const badge = dom.diffBadge || document.getElementById('difficulty-badge');
     if (badge) {
       if (config.isNarrow) {
+        const tagSlug = config.mode.toLowerCase().replace(/\s+/g, '-');
         badge.textContent = `⚡ ${config.mode}`;
-        badge.className = `difficulty-tag ${config.mode.toLowerCase()}-tag active`;
+        badge.className = `difficulty-tag ${tagSlug}-tag active`;
       } else {
         badge.textContent = '';
         badge.className = 'difficulty-tag';
@@ -352,6 +358,7 @@
 
     // Reset state values
     state.totalHits = 0;
+    state.lastPunchTime = 0;
     state.timerRemaining = diffConfig.duration;
     state.gameStartTime = performance.now();
     state.gameEndTime = 0;
@@ -371,8 +378,9 @@
     const badge = dom.diffBadge || document.getElementById('difficulty-badge');
     if (badge) {
       if (diffConfig.isNarrow) {
+        const tagSlug = diffConfig.mode.toLowerCase().replace(/\s+/g, '-');
         badge.textContent = `⚡ ${diffConfig.mode}`;
-        badge.className = `difficulty-tag ${diffConfig.mode.toLowerCase()}-tag active`;
+        badge.className = `difficulty-tag ${tagSlug}-tag active`;
       } else {
         badge.textContent = '';
         badge.className = 'difficulty-tag';
@@ -443,6 +451,12 @@
     if (state.currentScreen !== 'GAME') return;
     if (state.timerRemaining <= 0) return;
 
+    // Rate limiter / anti-spam cooldown: requires deliberate timed strikes
+    const now = performance.now();
+    const cooldown = (state.difficulty && state.difficulty.punchCooldown) ? state.difficulty.punchCooldown : 100;
+    if (now - state.lastPunchTime < cooldown) return;
+    state.lastPunchTime = now;
+
     const zone = state.zones[zoneKey];
     if (!zone || zone.completed) return;
 
@@ -479,8 +493,8 @@
     // Calculate directional bounce & flinch from hit position
     // If narrow/split-screen, add dynamic evasive slip to challenge tap spamming
     const isNarrow = state.difficulty && state.difficulty.isNarrow;
-    const offsetMagnitude = isNarrow ? 34 : 20;
-    const rotMagnitude = isNarrow ? 9 : 6;
+    const offsetMagnitude = isNarrow ? 48 : 20;
+    const rotMagnitude = isNarrow ? 12 : 6;
     const randOffset = (Math.random() - 0.5) * offsetMagnitude;
     const randRot = (Math.random() - 0.5) * rotMagnitude;
     stage.style.setProperty('--punch-offset-x', `${randOffset}px`);
@@ -650,12 +664,14 @@
     let rank = 'GOOD FIGHTER';
     const elapsed = parseFloat(elapsedSeconds);
     if (state.difficulty && state.difficulty.isNarrow) {
-      if (elapsed < 6) {
-        rank = '⚡ TURBO GODLIKE';
-      } else if (elapsed < 8.5) {
+      if (elapsed < 4.5) {
+        rank = '⚡ ULTRA GODLIKE';
+      } else if (elapsed < 6.5) {
         rank = '⚡ LIGHTNING REFLEX';
-      } else if (elapsed < 11) {
+      } else if (elapsed < 8.0) {
         rank = '⚡ TURBO CHAMPION';
+      } else {
+        rank = '⚡ SURVIVOR';
       }
     } else {
       if (elapsed < 10) {

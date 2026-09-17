@@ -872,6 +872,13 @@ body.debug-hitboxes .debug-label {
   box-shadow: 0 0 12px rgba(255, 0, 85, 0.85);
 }
 
+.difficulty-tag.ultra-turbo-tag {
+  background: linear-gradient(135deg, #ff0055 0%, #7209b7 50%, #ff0000 100%);
+  color: #fff;
+  border: 1px solid #ffff00;
+  box-shadow: 0 0 14px rgba(255, 0, 85, 0.95);
+}
+
 @keyframes pulse-difficulty-tag {
   from { transform: scale(0.96); filter: brightness(1); }
   to { transform: scale(1.06); filter: brightness(1.25); }
@@ -996,20 +1003,35 @@ body.debug-hitboxes .debug-label {
   /* High-velocity erratic dodging for mobile phones & ultra-narrow split-screen */
   @keyframes continuous-dodge-weave {
     0% {
-      transform: translateX(-60px) translateY(10px) rotate(-4.5deg);
+      transform: translateX(-70px) translateY(12px) rotate(-6deg);
     }
-    25% {
-      transform: translateX(25px) translateY(-20px) rotate(2.5deg);
+    14% {
+      transform: translateX(-20px) translateY(-26px) rotate(-2deg);
     }
-    50% {
-      transform: translateX(60px) translateY(10px) rotate(4.5deg);
+    28% {
+      transform: translateX(45px) translateY(18px) rotate(4deg);
     }
-    75% {
-      transform: translateX(-25px) translateY(-18px) rotate(-2.5deg);
+    42% {
+      transform: translateX(75px) translateY(-20px) rotate(6deg);
+    }
+    56% {
+      transform: translateX(15px) translateY(24px) rotate(1.5deg);
+    }
+    70% {
+      transform: translateX(-45px) translateY(-22px) rotate(-5deg);
+    }
+    85% {
+      transform: translateX(-75px) translateY(6px) rotate(-6.5deg);
     }
     100% {
-      transform: translateX(-60px) translateY(10px) rotate(-4.5deg);
+      transform: translateX(-70px) translateY(12px) rotate(-6deg);
     }
+  }
+
+  /* Precision hitboxes on mobile requiring intentional accurate taps */
+  .face-hitbox {
+    transform: scale(0.9);
+    transform-origin: center center;
   }
 
   .difficulty-tag {
@@ -1261,11 +1283,13 @@ body.debug-hitboxes .debug-label {
     timerInterval: null,
     gameStartTime: 0,
     gameEndTime: 0,
+    lastPunchTime: 0,
     isDebug: DEBUG_HITBOXES,
     difficulty: {
       mode: 'NORMAL',
       duration: GAME_DURATION,
       moveDuration: '2.8s',
+      punchCooldown: 90,
       isNarrow: false
     }
   };
@@ -1478,16 +1502,18 @@ body.debug-hitboxes .debug-label {
     const width = (dom.container && dom.container.clientWidth) ? dom.container.clientWidth : window.innerWidth;
     if (width <= 500) {
       return {
-        mode: 'TURBO',
-        duration: 11,
-        moveDuration: '1.2s',
+        mode: 'ULTRA TURBO',
+        duration: 8,
+        moveDuration: '0.85s',
+        punchCooldown: 140,
         isNarrow: true
       };
     } else if (width <= 768) {
       return {
-        mode: 'FAST',
-        duration: 13,
-        moveDuration: '1.5s',
+        mode: 'TURBO',
+        duration: 10,
+        moveDuration: '1.1s',
+        punchCooldown: 120,
         isNarrow: true
       };
     } else {
@@ -1495,6 +1521,7 @@ body.debug-hitboxes .debug-label {
         mode: 'NORMAL',
         duration: GAME_DURATION,
         moveDuration: '2.8s',
+        punchCooldown: 90,
         isNarrow: false
       };
     }
@@ -1516,8 +1543,9 @@ body.debug-hitboxes .debug-label {
     const badge = dom.diffBadge || document.getElementById('difficulty-badge');
     if (badge) {
       if (config.isNarrow) {
+        const tagSlug = config.mode.toLowerCase().replace(/\s+/g, '-');
         badge.textContent = `⚡ ${config.mode}`;
-        badge.className = `difficulty-tag ${config.mode.toLowerCase()}-tag active`;
+        badge.className = `difficulty-tag ${tagSlug}-tag active`;
       } else {
         badge.textContent = '';
         badge.className = 'difficulty-tag';
@@ -1567,6 +1595,7 @@ body.debug-hitboxes .debug-label {
 
     // Reset state values
     state.totalHits = 0;
+    state.lastPunchTime = 0;
     state.timerRemaining = diffConfig.duration;
     state.gameStartTime = performance.now();
     state.gameEndTime = 0;
@@ -1586,8 +1615,9 @@ body.debug-hitboxes .debug-label {
     const badge = dom.diffBadge || document.getElementById('difficulty-badge');
     if (badge) {
       if (diffConfig.isNarrow) {
+        const tagSlug = diffConfig.mode.toLowerCase().replace(/\s+/g, '-');
         badge.textContent = `⚡ ${diffConfig.mode}`;
-        badge.className = `difficulty-tag ${diffConfig.mode.toLowerCase()}-tag active`;
+        badge.className = `difficulty-tag ${tagSlug}-tag active`;
       } else {
         badge.textContent = '';
         badge.className = 'difficulty-tag';
@@ -1658,6 +1688,12 @@ body.debug-hitboxes .debug-label {
     if (state.currentScreen !== 'GAME') return;
     if (state.timerRemaining <= 0) return;
 
+    // Rate limiter / anti-spam cooldown: requires deliberate timed strikes
+    const now = performance.now();
+    const cooldown = (state.difficulty && state.difficulty.punchCooldown) ? state.difficulty.punchCooldown : 100;
+    if (now - state.lastPunchTime < cooldown) return;
+    state.lastPunchTime = now;
+
     const zone = state.zones[zoneKey];
     if (!zone || zone.completed) return;
 
@@ -1694,8 +1730,8 @@ body.debug-hitboxes .debug-label {
     // Calculate directional bounce & flinch from hit position
     // If narrow/split-screen, add dynamic evasive slip to challenge tap spamming
     const isNarrow = state.difficulty && state.difficulty.isNarrow;
-    const offsetMagnitude = isNarrow ? 34 : 20;
-    const rotMagnitude = isNarrow ? 9 : 6;
+    const offsetMagnitude = isNarrow ? 48 : 20;
+    const rotMagnitude = isNarrow ? 12 : 6;
     const randOffset = (Math.random() - 0.5) * offsetMagnitude;
     const randRot = (Math.random() - 0.5) * rotMagnitude;
     stage.style.setProperty('--punch-offset-x', `${randOffset}px`);
@@ -1865,12 +1901,14 @@ body.debug-hitboxes .debug-label {
     let rank = 'GOOD FIGHTER';
     const elapsed = parseFloat(elapsedSeconds);
     if (state.difficulty && state.difficulty.isNarrow) {
-      if (elapsed < 6) {
-        rank = '⚡ TURBO GODLIKE';
-      } else if (elapsed < 8.5) {
+      if (elapsed < 4.5) {
+        rank = '⚡ ULTRA GODLIKE';
+      } else if (elapsed < 6.5) {
         rank = '⚡ LIGHTNING REFLEX';
-      } else if (elapsed < 11) {
+      } else if (elapsed < 8.0) {
         rank = '⚡ TURBO CHAMPION';
+      } else {
+        rank = '⚡ SURVIVOR';
       }
     } else {
       if (elapsed < 10) {
